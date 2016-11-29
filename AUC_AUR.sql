@@ -2,6 +2,7 @@ drop table AUCAURtable;
 drop table AUCAURtable2;
 drop table AUCAURtable1;
 
+
 create volatile table AUCAURtable, no fallback, no log(
 	FIS_YR_NBR_MO	SMALLINT, 
 	FIS_MO_NBR	BYTEINT, 
@@ -24,7 +25,7 @@ from	VIEWINV.VICWA_WK_INV_TXN_CNCY_AGG	a11
 where	(a11.BRD_KEY in (1, 2, 3, 4, 5, 7, 8)
  and a11.MKT_KEY in (2, 5, 3, 7, 4, 1)
  and a11.CHNL_KEY in (1, 2, 3)
- and a12.FIS_YR_NBR in (2016)
+and a12.FIS_YR_NBR  in ('?My_year')
  and a11.XCHG_RAT_TO_CNCY_CD in ('USD   ')
  and a11.XCHG_RAT_TYP_CD in ('SPR       ')
  and a11.TXN_TYP_CD = 20)
@@ -59,7 +60,7 @@ from	VIEWINV.VDICW_DLY_INV_TXN_CNCY_FCT	a11
 where	(a11.BRD_KEY in (1, 2, 3, 4, 5, 7, 8)
  and a11.MKT_KEY in (2, 5, 3, 7, 4, 1)
  and a12.DD_CHNL_KEY in (1, 2, 3)
- and a13.FIS_YR_NBR in (2016)
+and a12.FIS_YR_NBR  in ('?My_year')
  and a11.XCHG_RAT_TO_CNCY_CD in ('USD   ')
  and a11.XCHG_RAT_TYP_CD in ('SPR       ')
  and a11.TXN_TYP_CD = 20
@@ -99,7 +100,7 @@ from	VIEWSLS.VSLWA_SLS_LOC_WK_CNCY_CNV_FCT	a11
 where	(a11.BRD_KEY in (1, 2, 3, 4, 5, 7, 8)
  and a11.MKT_KEY in (2, 5, 3, 7, 4, 1)
  and a12.DD_CHNL_KEY in (1, 2, 3)
- and a13.FIS_YR_NBR in (2016)
+and a12.FIS_YR_NBR  in ('?My_year')
  and a11.XCHG_RAT_TO_CNCY_CD in ('USD   ')
  and a11.XCHG_RAT_TYP_CD in ('SPR       ')
  and a11.TXN_ITM_TYP_CD = 'M')

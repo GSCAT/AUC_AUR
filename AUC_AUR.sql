@@ -1,5 +1,5 @@
---drop table AUCAURtable;
---drop table AUCAURtable2;
+drop table AUCAURtable;
+drop table AUCAURtable2;
 drop table AUCAURtable1;
 
 create volatile table AUCAURtable, no fallback, no log(
@@ -122,11 +122,11 @@ group by	a13.FIS_YR_NBR,
 	max(a17.MKT_NM)  MKT_DESC,
 	coalesce(pa11.CHNL_KEY, pa12.CHNL_KEY, pa13.CHNL_KEY)  CHNL_KEY,
 	max(a16.CHNL_NM)  CHNL_NM,
-	max(pa11.WJXBFS1)  WJXBFS1,
-	max(pa12.WJXBFS1)  WJXBFS2,
-	max(pa13.WJXBFS1)  WJXBFS3,
-	max(pa13.WJXBFS2)  WJXBFS4,
-	max(pa13.WJXBFS3)  WJXBFS5
+	max(pa11.WJXBFS1)  "Cost Vendor Rects",
+	max(pa12.WJXBFS1)  "Unit Vendor Rects",
+	max(pa13.WJXBFS1)  "Rev Sales Amt",
+	max(pa13.WJXBFS2)  "Rev Sales Units",
+	max(pa13.WJXBFS3)  "Cost Sales Amt"
 from	AUCAURtable	pa11
 	full outer join	AUCAURtable1	pa12
 	  on 	(pa11.BRD_KEY = pa12.BRD_KEY and 

@@ -1,6 +1,6 @@
-drop table AUCAURtable;
+/*drop table AUCAURtable;
 drop table AUCAURtable2;
-drop table AUCAURtable1;
+drop table AUCAURtable1;*/
 
 
 create volatile table AUCAURtable, no fallback, no log(

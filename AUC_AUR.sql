@@ -2,6 +2,7 @@
 drop table AUCAURtable2;
 drop table AUCAURtable1;*/
 
+-- this is for Viral as example
 create volatile table AUCAURtable, no fallback, no log(
 	FIS_YR_NBR_MO	SMALLINT, 
 	FIS_MO_NBR	BYTEINT, 

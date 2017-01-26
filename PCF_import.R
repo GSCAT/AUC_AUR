@@ -2,12 +2,16 @@ install.packages("dplyr")
 library(dplyr)
 library(magrittr)
 library(readxl)
+library(readr)
+library(tidyr)
 
 
 # PCF_Forecast <- read_csv("Mockup for Jessica.csv")
 PCF_Forecast <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull KB" )
 PCF_Budget <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull B KB" )
 product_key <- read_excel("Area Product Key.xlsx", sheet = 1)
+quarter_mapping <- read_csv("quarter_mapping.csv")
+
 # Function for converting columns to factors ----
 # Only works when on first n columns. Pass a sequence (i.e. 1:3 for first 3 columns)
 conv_fact <- function(x, my_table){
@@ -23,7 +27,21 @@ product_key <- conv_fact(1:3, product_key)
 
 # Left join to prod_key table for "Business Unit" field and arrange
 PCF_Forecast_post_proc <-  left_join(PCF_Forecast, product_key, by= c('Area', 'Product')) %>% 
-  select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`)
+  select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, 
+         `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
+  gather("Month", "Value", 4:14) %>% 
+  left_join(quarter_mapping, by = c('Month'= 'Fiscal Month'))
+
+PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 
+  select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, 
+         `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
+  gather("Month", "Value", 4:14)%>% 
+  left_join(quarter_mapping, by = c('Month'= 'Fiscal Month'))
+
+# Output PCF ----
+Ouput_PCF_Forecast <- PCF_Forecast_post_proc %>% 
+  group_by(Years, Accounts, `Business Unit`) %>% 
+  summarise("Forecast TY AUR of Sales" = )
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

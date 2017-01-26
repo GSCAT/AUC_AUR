@@ -8,18 +8,20 @@ library(readxl)
 PCF_Forecast <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull KB" )
 PCF_Budget <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull B KB" )
 product_key <- read_excel("Area Product Key.xlsx", sheet = 1)
-
+# Function for converting columns to factors ----
+# Only works when on first n columns. Pass a sequence (i.e. 1:3 for first 3 columns)
 conv_fact <- function(x, my_table){
   for(i in seq_along(x))
  my_table[[i]] <- as.factor(my_table[[i]])
   return(my_table)
 }
 # Change first number of columns (vec_1) to Factor ----
-vec_1 <- c(1:4)
-PCF_Forecast <- conv_fact(vec_1, PCF_Forecast)
-PCF_Budget <- conv_fact(vec_1, PCF_Budget)
+
+PCF_Forecast <- conv_fact(1:4, PCF_Forecast)
+PCF_Budget <- conv_fact(1:4, PCF_Budget)
 product_key <- conv_fact(1:3, product_key)
 
+# Left join to prod_key table for "Business Unit" field and arrange
 PCF_Forecast_post_proc <-  left_join(PCF_Forecast, product_key, by= c('Area', 'Product')) %>% 
   select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`)
 

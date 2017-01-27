@@ -34,19 +34,21 @@ PCF_Forecast_post_proc <-  left_join(PCF_Forecast, product_key, by= c('Area', 'P
   gather("Month", "Value", 4:14) %>% 
   spread(Accounts, Value) %>% 
   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month')) %>% 
-  left_join(BMC_table, by = c())
+  left_join(BMC_table, by = c('Business Unit' = 'BMC'))
 
 PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 
   select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, 
          `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
-  gather("Month", "Value", 4:14)%>% 
+  gather("Month", "Value", 4:14) %>% 
   spread(Accounts, Value) %>% 
   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month'))
 
+PCF_Forecast_post_proc[,4:11] <- lapply(PCF_Forecast_post_proc[,4:11], function (x) as.numeric(x))
+
 # Output PCF ----
 Ouput_PCF_Forecast <- PCF_Forecast_post_proc %>% 
-  group_by(Years, `Business Unit`, `Fiscal Quarter`) %>% 
- # summarise("Forecast TY AUR of Sales" = sum(as.integer(`Retail$`))/ sum(as.integer(`Unit Sales`)))
+  group_by(Years, `BMC_short_desc`, `Fiscal Quarter`) %>% 
+ summarise("Forecast TY AUR of Sales" = sum(`Retail$`)/sum(`Unit Sales`))
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

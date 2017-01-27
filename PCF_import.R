@@ -13,6 +13,17 @@ product_key <- read_excel("Area Product Key.xlsx", sheet = 1)
 quarter_mapping <- read_csv("quarter_mapping.csv")
 BMC_table <- read_csv("BMC.csv")
 
+last_col <- length(PCF_Forecast) 
+
+# Add Source column to Forecast----
+PCF_Forecast[last_col+1] <- as.factor("Forecast")
+names(PCF_Forecast)[length(PCF_Forecast)] <- "Source"
+
+# Add Source column to Budget ----
+PCF_Budget[last_col+1] <- as.factor("Budget")
+names(PCF_Budget)[length(PCF_Budget)] <- "Source"
+
+
 # Function for converting columns to factors ----
 # Only works when on first n columns. Pass a sequence (i.e. 1:3 for first 3 columns)
 conv_fact <- function(x, my_table){
@@ -27,28 +38,35 @@ PCF_Budget <- conv_fact(1:4, PCF_Budget)
 product_key <- conv_fact(1:3, product_key)
 BMC_table <- conv_fact(1:8, BMC_table)
 
+rbind_PCF <- rbind(PCF_Forecast, PCF_Budget)
+
 # Left join to prod_key table for "Business Unit" field and arrange
-PCF_Forecast_post_proc <-  left_join(PCF_Forecast, product_key, by= c('Area', 'Product')) %>% 
-  select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, 
-         `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
-  gather("Month", "Value", 4:14) %>% 
+PCF_post_proc <-  left_join(rbind_PCF, product_key, by= c('Area', 'Product')) %>% 
+  select(`Years`, `Accounts`, `Business Unit`,`Source`, `February`, `March`, `April`, 
+         `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`, `January`) %>% 
+  gather("Month", "Value", 5:16) %>% 
   spread(Accounts, Value) %>% 
   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month')) %>% 
   left_join(BMC_table, by = c('Business Unit' = 'BMC'))
 
-PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 
-  select(`Years`, `Accounts`, `Business Unit`, `February`, `March`, `April`, 
-         `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
-  gather("Month", "Value", 4:14) %>% 
-  spread(Accounts, Value) %>% 
-  left_join(quarter_mapping, by = c('Month'= 'Fiscal Month'))
+# PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 
+#   select(`Years`, `Accounts`, `Business Unit`, `Source`, `February`, `March`, `April`, 
+#          `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`) %>% 
+#   gather("Month", "Value", 5:15) %>% 
+#   spread(Accounts, Value) %>% 
+#   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month'))
 
-PCF_Forecast_post_proc[,4:11] <- lapply(PCF_Forecast_post_proc[,4:11], function (x) as.numeric(x))
+# PCF_Forecast_post_proc[,5:12] <- lapply(PCF_Forecast_post_proc[, 5:12], function (x) as.numeric(x))
+
+PCF_post_proc[,5:12] <- lapply(PCF_post_proc[, 5:12], function (x) as.numeric(x))
 
 # Output PCF ----
-Ouput_PCF_Forecast <- PCF_Forecast_post_proc %>% 
+Output_PCF <- PCF_post_proc %>% 
   group_by(Years, `BMC_short_desc`, `Fiscal Quarter`) %>% 
- summarise("Forecast TY AUR of Sales" = sum(`Retail$`)/sum(`Unit Sales`))
+ summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"))/sum(subset(`Unit Sales`, Source == "Forecast")),
+                 "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"))/sum(subset(`Unit Rcpts`, Source == "Forecast")),
+                 "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"))/sum(subset(`Unit Sales`, Source == "Budget")),
+             "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"))/sum(subset(`Unit Rcpts`, Source == "Budget")))
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

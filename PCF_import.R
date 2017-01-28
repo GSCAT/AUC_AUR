@@ -5,7 +5,7 @@ library(readxl)
 library(readr)
 library(tidyr)
 
-
+# Read in Data ----
 # PCF_Forecast <- read_csv("Mockup for Jessica.csv")
 PCF_Forecast <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull KB" )
 PCF_Budget <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull B KB" )
@@ -37,6 +37,7 @@ PCF_Forecast <- conv_fact(1:4, PCF_Forecast)
 PCF_Budget <- conv_fact(1:4, PCF_Budget)
 product_key <- conv_fact(1:3, product_key)
 BMC_table <- conv_fact(1:8, BMC_table)
+quarter_mapping <-  conv_fact(1:3, quarter_mapping)
 
 rbind_PCF <- rbind(PCF_Forecast, PCF_Budget)
 
@@ -66,7 +67,9 @@ Output_PCF <- PCF_post_proc %>%
  summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"))/sum(subset(`Unit Sales`, Source == "Forecast")),
                  "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"))/sum(subset(`Unit Rcpts`, Source == "Forecast")),
                  "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"))/sum(subset(`Unit Sales`, Source == "Budget")),
-             "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"))/sum(subset(`Unit Rcpts`, Source == "Budget")))
+             "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"))/sum(subset(`Unit Rcpts`, Source == "Budget")),
+          "AUR % Change" = as.numeric((`Forecast TY AUR of Sales`-`Budget AUR of Sales`)/`Forecast TY AUR of Sales`)*100,
+          "AUC % Change" = as.numeric((`TY AUC of Receipts`-`Budget AUC of Receipts`)/`TY AUC of Receipts`)*100)
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

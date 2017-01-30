@@ -68,8 +68,12 @@ Output_PCF <- PCF_post_proc %>%
                  "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"))/sum(subset(`Unit Rcpts`, Source == "Forecast")),
                  "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"))/sum(subset(`Unit Sales`, Source == "Budget")),
              "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"))/sum(subset(`Unit Rcpts`, Source == "Budget")),
-          "AUR % Change" = as.numeric((`Forecast TY AUR of Sales`-`Budget AUR of Sales`)/`Forecast TY AUR of Sales`)*100,
-          "AUC % Change" = as.numeric((`TY AUC of Receipts`-`Budget AUC of Receipts`)/`TY AUC of Receipts`)*100)
+                       "AUR % Change" = as.numeric((`Forecast TY AUR of Sales`-`Budget AUR of Sales`)/`Forecast TY AUR of Sales`)*100,
+                       "AUC % Change" = as.numeric((`TY AUC of Receipts`-`Budget AUC of Receipts`)/`TY AUC of Receipts`)*100,
+                          "GM Budget" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget"))/ sum(subset(`Retail$`, Source == "Budget")))*100,
+                 "GM Forecast/Actual" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast"))/ sum(subset(`Retail$`, Source == "Forecast")))*100,
+                "GM Budget (dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget"))),
+       "GM Forecast/Actual (dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast"))))
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

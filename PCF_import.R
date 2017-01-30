@@ -6,10 +6,11 @@ library(readr)
 library(tidyr)
 
 # Read in Data ----
-# PCF_Forecast <- read_csv("Mockup for Jessica.csv")
-PCF_Forecast <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull KB" )
-PCF_Budget <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull B KB" )
-PCF_LY <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull LY KB" )
+PCF_file <-  "AUR AUC 2016 - Jan Fcst - for KB.xlsx"
+
+PCF_Forecast <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull KB" )
+PCF_Budget <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull B KB" )
+PCF_LY <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull LY KB" )
   
   
 product_key <- read_excel("Area Product Key.xlsx", sheet = 1)

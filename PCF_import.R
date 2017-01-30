@@ -9,19 +9,28 @@ library(tidyr)
 # PCF_Forecast <- read_csv("Mockup for Jessica.csv")
 PCF_Forecast <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull KB" )
 PCF_Budget <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull B KB" )
+PCF_LY <- read_excel("AUR AUC 2016 - Jan Fcst - for KB.xlsx", sheet = "Corp CP Essbase Pull LY KB" )
+  
+  
 product_key <- read_excel("Area Product Key.xlsx", sheet = 1)
 quarter_mapping <- read_csv("quarter_mapping.csv")
 BMC_table <- read_csv("BMC.csv")
 
-last_col <- length(PCF_Forecast) 
+last_col_forecast <- length(PCF_Forecast) 
+last_col_budget <- length(PCF_Budget) 
+last_col_LY <- length(PCF_LY) 
 
 # Add Source column to Forecast----
-PCF_Forecast[last_col+1] <- as.factor("Forecast")
+PCF_Forecast[last_col_forecast+1] <- as.factor("Forecast")
 names(PCF_Forecast)[length(PCF_Forecast)] <- "Source"
 
 # Add Source column to Budget ----
-PCF_Budget[last_col+1] <- as.factor("Budget")
+PCF_Budget[last_col_budget+1] <- as.factor("Budget")
 names(PCF_Budget)[length(PCF_Budget)] <- "Source"
+
+# Add Source column to LY ----
+PCF_LY[last_col_LY+1] <- as.factor("LY")
+names(PCF_LY)[length(PCF_LY)] <- "Source"
 
 
 # Function for converting columns to factors ----
@@ -35,11 +44,13 @@ conv_fact <- function(x, my_table){
 
 PCF_Forecast <- conv_fact(1:4, PCF_Forecast)
 PCF_Budget <- conv_fact(1:4, PCF_Budget)
+PCF_LY <- conv_fact(1:4, PCF_LY)
+
 product_key <- conv_fact(1:3, product_key)
 BMC_table <- conv_fact(1:8, BMC_table)
 quarter_mapping <-  conv_fact(1:3, quarter_mapping)
 
-rbind_PCF <- rbind(PCF_Forecast, PCF_Budget)
+rbind_PCF <- rbind(PCF_Forecast, PCF_Budget, PCF_LY)
 
 # Left join to prod_key table for "Business Unit" field and arrange
 PCF_post_proc <-  left_join(rbind_PCF, product_key, by= c('Area', 'Product')) %>% 
@@ -48,7 +59,8 @@ PCF_post_proc <-  left_join(rbind_PCF, product_key, by= c('Area', 'Product')) %>
   gather("Month", "Value", 5:16) %>% 
   spread(Accounts, Value) %>% 
   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month')) %>% 
-  left_join(BMC_table, by = c('Business Unit' = 'BMC'))
+  left_join(BMC_table, by = c('Business Unit' = 'BMC')) 
+
 
 # PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 
 #   select(`Years`, `Accounts`, `Business Unit`, `Source`, `February`, `March`, `April`, 
@@ -60,20 +72,25 @@ PCF_post_proc <-  left_join(rbind_PCF, product_key, by= c('Area', 'Product')) %>
 # PCF_Forecast_post_proc[,5:12] <- lapply(PCF_Forecast_post_proc[, 5:12], function (x) as.numeric(x))
 
 PCF_post_proc[,5:12] <- lapply(PCF_post_proc[, 5:12], function (x) as.numeric(x))
+PCF_post_proc$Month <- as.factor(PCF_post_proc$`Month`)
 
 # Output PCF ----
 Output_PCF <- PCF_post_proc %>% 
-  group_by(Years, `BMC_short_desc`, `Fiscal Quarter`) %>% 
- summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"))/sum(subset(`Unit Sales`, Source == "Forecast")),
-                 "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"))/sum(subset(`Unit Rcpts`, Source == "Forecast")),
-                 "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"))/sum(subset(`Unit Sales`, Source == "Budget")),
-             "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"))/sum(subset(`Unit Rcpts`, Source == "Budget")),
+  group_by(`BMC_short_desc`, `Fiscal Quarter`) %>% 
+ summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
+                 "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
+                 "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),
+             "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Budget"), na.rm = TRUE),
+                    "LY AUR of Sales" = sum(subset(`Retail$`,    Source == "LY"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "LY"), na.rm = TRUE),
+                 "LY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "LY"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "LY"), na.rm = TRUE),
                        "AUR % Change (TY vs Budget)" = as.numeric((`Forecast TY AUR of Sales`-`Budget AUR of Sales`)/`Forecast TY AUR of Sales`)*100,
                        "AUC % Change (TY vs Budget)" = as.numeric((`TY AUC of Receipts`-`Budget AUC of Receipts`)/`TY AUC of Receipts`)*100,
-                          "GM Budget" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget"))/ sum(subset(`Retail$`, Source == "Budget")))*100,
-                 "GM Forecast/Actual" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast"))/ sum(subset(`Retail$`, Source == "Forecast")))*100,
-                "GM Budget (dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget"))),
-       "GM Forecast/Actual (dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast"))))
+                       "AUR % Change (TY vs LY)" = as.numeric((`Forecast TY AUR of Sales`-`LY AUR of Sales`)/`Forecast TY AUR of Sales`)*100,
+                       "AUC % Change (TY vs LY)" = as.numeric((`TY AUC of Receipts`-`LY AUC of Receipts`)/`TY AUC of Receipts`)*100,
+                          "GM Budget" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "Budget"), na.rm = TRUE)*100,
+                 "GM Forecast/Actual" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "Forecast"), na.rm = TRUE)*100,
+                "GM Budget (dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
+       "GM Forecast/Actual (dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE))
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

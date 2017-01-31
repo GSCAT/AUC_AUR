@@ -33,7 +33,7 @@ sqlQuery(my_connect, query = "SELECT  * from dbc.dbcinfo;")
 NOVA_data <- sqlQuery(my_connect, query = "SELECT * FROM SRAA_SAND.NOVA_ACTL_YTD")
 
 save(NOVA_data, file = paste(my_directory, "NOVA_DATA2.rda", sep = .Platform$file.sep ))
-# load(file = paste(my_directory, "NOVA_DATA.rda", sep = .Platform$file.sep ))
+load(file = paste(my_directory, "NOVA_DATA2.rda", sep = .Platform$file.sep ))
 
 # Separate EDW Quarter Description ----
 NOVA_data <- NOVA_data %>% separate(FIS_QTR_DESC, into= c('FIS_QTR_DESC', 'FIS_QTR_DATE_RANGE'), sep = ":")
@@ -59,14 +59,18 @@ NOVA_data$MKT_DESC <- revalue(NOVA_data$MKT_DESC, c("CANADA" = "Canada",
 
 NOVA_data$CHNL_NM <- revalue(NOVA_data$CHNL_NM, c("ONLINE" = "Online", "RETAIL" = "Retail"))
 
+NOVA_data <- NOVA_data %>% left_join(BMC_table, by = c("BRD_NM" = "Brand", "MKT_DESC" = "Market", "CHNL_NM" = "Channel" ))
 
 # Summarising the data ----
-Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, FIS_YR_NBR, BRD_NM) %>% 
+Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, `Brand Region`) %>% 
   summarise("TY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE),
             "LY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE),
-            "Yr2 AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE),
-            "TY AUC of Receipts (Historic)" = sum(subset(`Cost Vendor Rects` , FIS_YR_NBR_MO == "TY"), na.rm = TRUE)/sum(subset(`Unit Vendor Rects`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE), 
-            "LY AUC of Receipts (Historic)" = sum(subset(`Cost Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Unit Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE) )
+           "Yr2 AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE),
+         "TY AUC of Receipts (Historic)" = sum(subset(`Cost Vendor Rects` , FIS_YR_NBR_MO == "TY"), na.rm = TRUE)/sum(subset(`Unit Vendor Rects`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE), 
+         "LY AUC of Receipts (Historic)" = sum(subset(`Cost Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Unit Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE),
+           "AUR Change to LY (Historic)" = as.numeric((`TY AUR of Sales (Historic)`- `LY AUR of Sales (Historic)`)/`LY AUR of Sales (Historic)` )*100,
+           "AUC Change to LY (Historic)" = as.numeric((`TY AUC of Receipts (Historic)`- `LY AUC of Receipts (Historic)`)/`LY AUC of Receipts (Historic)` )*100
+            )
 
 
 # Experimental ----

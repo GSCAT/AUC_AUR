@@ -1,3 +1,4 @@
+library(plyr)
 library(dplyr)
 library(readr)
 library(RODBC)
@@ -41,6 +42,25 @@ NOVA_data <- conv_fact(1:13, NOVA_data)
 
 levels(NOVA_data$FIS_YR_NBR_MO) <- c("Yr2", "LY", "TY")
 
+NOVA_data$BRD_NM <- revalue(NOVA_data$BRD_NM, c("BANANA REPUBLIC" = "BR", 
+                                                "BANANA REPUBLIC OUTLET" = "BRFS", 
+                                                "GAP" = "Gap", 
+                                                "GAP OUTLET" = "GO", 
+                                                "OLD NAVY" = "ON", 
+                                                "ATHLETA" = "Athleta", 
+                                                "PIPERLIME" = "Piperlime"))
+
+NOVA_data$MKT_DESC <- revalue(NOVA_data$MKT_DESC, c("CANADA" = "Canada", 
+                                                    "CHINA" = "China", 
+                                                    "EUROPE" = "Europe", 
+                                                    "GREATER CHINA" = "Hong Kong", 
+                                                    "JAPAN" ="Japan", 
+                                                    "UNITED STATES" = "US"))
+
+NOVA_data$CHNL_NM <- revalue(NOVA_data$CHNL_NM, c("ONLINE" = "Online", "RETAIL" = "Retail"))
+
+
+# Summarising the data ----
 Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, FIS_YR_NBR, BRD_NM) %>% 
   summarise("TY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE),
             "LY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE),
@@ -49,7 +69,7 @@ Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, FIS_YR_NBR, BRD_NM) %>%
             "LY AUC of Receipts (Historic)" = sum(subset(`Cost Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Unit Vendor Rects`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE) )
 
 
-# Experimental
+# Experimental ----
 
 View(subset(NOVA_data, 
             NOVA_data$FIS_YR_NBR == levels(NOVA_data$FIS_YR_NBR)[length(levels(NOVA_data$FIS_YR_NBR))-1]))

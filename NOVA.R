@@ -1,6 +1,7 @@
 library(plyr)
 library(dplyr)
 library(readr)
+library(tidyr)
 library(RODBC)
 library(rChoiceDialogs)
 
@@ -36,7 +37,8 @@ save(NOVA_data, file = paste(my_directory, "NOVA_DATA2.rda", sep = .Platform$fil
 load(file = paste(my_directory, "NOVA_DATA2.rda", sep = .Platform$file.sep ))
 
 # Separate EDW Quarter Description ----
-NOVA_data <- NOVA_data %>% separate(FIS_QTR_DESC, into= c('FIS_QTR_DESC', 'FIS_QTR_DATE_RANGE'), sep = ":")
+NOVA_data <- NOVA_data %>% 
+  separate(FIS_QTR_DESC, into= c('FIS_QTR_DESC', 'FIS_QTR_DATE_RANGE'), sep = ":")
 
 NOVA_data <- conv_fact(1:13, NOVA_data)
 
@@ -61,8 +63,11 @@ NOVA_data$CHNL_NM <- revalue(NOVA_data$CHNL_NM, c("ONLINE" = "Online", "RETAIL" 
 
 NOVA_data <- NOVA_data %>% left_join(BMC_table, by = c("BRD_NM" = "Brand", "MKT_DESC" = "Market", "CHNL_NM" = "Channel" ))
 
+# NOVA_data <- NOVA_data %>% 
+  # subset(CHNL_NM != "FRANCHISE" | BRD_NM != "Piperlime" | (BRD_NM != "ON" & MKT_DESC != "Hong Kong" & CHNL_NM = "Retail")) %>% droplevels()
+
 # Summarising the data ----
-Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, `Brand Region`) %>% 
+Output_NOVA <- NOVA_data %>% group_by(FIS_QTR_DESC, BMC_short_desc) %>% 
   summarise("TY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "TY"), na.rm = TRUE),
             "LY AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "LY"), na.rm = TRUE),
            "Yr2 AUR of Sales (Historic)" = sum(subset(`Rev Sales Amt`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE)/sum(subset(`Rev Sales Units`, FIS_YR_NBR_MO == "Yr2"), na.rm = TRUE),

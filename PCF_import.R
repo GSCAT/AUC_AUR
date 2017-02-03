@@ -60,7 +60,7 @@ PCF_post_proc <-  left_join(rbind_PCF, product_key, by= c('Area', 'Product')) %>
   gather("Month", "Value", 5:16) %>% 
   spread(Accounts, Value) %>% 
   left_join(quarter_mapping, by = c('Month'= 'Fiscal Month')) %>% 
-  left_join(BMC_table, by = c('Business Unit' = 'BMC')) 
+  left_join(BMC_table, by = c('Business Unit' = 'BMC'))
 
 
 # PCF_Budget_post_proc <-  left_join(PCF_Budget, product_key, by= c('Area', 'Product')) %>% 

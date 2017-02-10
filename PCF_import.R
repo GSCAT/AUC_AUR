@@ -241,14 +241,17 @@ Output_PCF_Brand_Channel <- PCF_post_proc %>%
             "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
             "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
 
-
-Gap_bind <-  rbind(Output_PCF_GapInc, Output_PCF_Brand_Region)
-Gap_bind$`Gap Inc` <- as.character(Gap_bind$`Gap Inc`) 
-Gap_bind$`Brand Region` <- as.character(Gap_bind$`Brand Region`) 
-Gap_bind <- replace_na(Gap_bind, replace = list(`Gap Inc` = "", `Brand Region` = "")) %>% 
+# Bind Gap Inc level table ----
+Gap_Inc_bind <-  rbind(Output_PCF_GapInc, Output_PCF_Brand_Region)
+Gap_Inc_bind$`Gap Inc` <- as.character(Gap_Inc_bind$`Gap Inc`) 
+Gap_Inc_bind$`Brand Region` <- as.character(Gap_Inc_bind$`Brand Region`) 
+Gap_Inc_bind <- replace_na(Gap_Inc_bind, replace = list(`Gap Inc` = "", `Brand Region` = "")) %>% 
   unite("Gap Inc",`Gap Inc`, `Brand Region`, sep="")
-Gap_bind$`Gap Inc` <- as.factor(Gap_bind$`Gap Inc`) 
-Gap_bind$`Brand Region` <- as.factor(Gap_bind$`Brand Region`) 
+Gap_Inc_bind$`Gap Inc` <- as.factor(Gap_Inc_bind$`Gap Inc`) 
+
+Gap_Inc_bind <- Gap_Inc_bind %>% 
+  arrange(`Fiscal Quarter`)
+
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

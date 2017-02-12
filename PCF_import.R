@@ -249,8 +249,15 @@ Gap_Inc_bind <- replace_na(Gap_Inc_bind, replace = list(`Gap Inc` = "", `Brand R
   unite("Gap Inc",`Gap Inc`, `Brand Region`, sep="")
 Gap_Inc_bind$`Gap Inc` <- as.factor(Gap_Inc_bind$`Gap Inc`) 
 
+Gap_Inc_display <- c("Gap Inc", "ON NA", "Gap NA", "BR NA", "GO NA", "BRFS NA", "Athleta NA") 
+
 Gap_Inc_bind <- Gap_Inc_bind %>% 
-  arrange(`Fiscal Quarter`)
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`Gap Inc` %in% c(Gap_Inc_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(Gap_Inc_display), by = c("Gap Inc" = "Gap_Inc_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
 
 
 # Depricated code ----

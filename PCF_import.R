@@ -179,9 +179,9 @@ Output_PCF_Region <- PCF_post_proc %>%
             "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
 
 
-# Output PCF by Region ----
-Output_PCF_Channel <- PCF_post_proc %>% 
-  group_by(`Channel`, `Fiscal Quarter`) %>% 
+# Output PCF by BMC ----
+Output_PCF_BMC <- PCF_post_proc %>% 
+  group_by(`Business Unit`, `Fiscal Quarter`) %>% 
   summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
             "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
             "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),
@@ -200,7 +200,7 @@ Output_PCF_Channel <- PCF_post_proc %>%
             "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
 
 
-# Output PCF by Region ----
+# Output PCF by Market ----
 Output_PCF_Market <- PCF_post_proc %>% 
   group_by(`Market`, `Fiscal Quarter`) %>% 
   summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
@@ -258,6 +258,22 @@ Gap_Inc_bind <- Gap_Inc_bind %>%
   right_join(as.data.frame(Gap_Inc_display), by = c("Gap Inc" = "Gap_Inc_display")) %>% 
   arrange(desc(`Fiscal Quarter`))
 
+# Brand Level bind ----
+Brand_bind <-  rbind(Output_PCF_Brand_Region, Output_PCF_BMC)
+Brand_bind$`Brand Region` <- as.character(Brand_bind$`Brand Region`) 
+Brand_bind$`Business Unit` <- as.character(Brand_bind$`Business Unit`) 
+Brand_bind <- replace_na(Brand_bind, replace = list(`Brand Region` = "", `Business Unit` = "")) %>% 
+  unite("BMC", `Brand Region`, `Business Unit`, sep = "")
+Brand_bind$`BMC` <- as.factor(Brand_bind$`BMC`) 
+
+Gap_Brand_display <- c("Gap NA", "Gap US", "Gap Canada", "Gap Online US", "Gap Online Can", "Gap Outlet US", "Gap Outlet Canada")
+
+output_Gap_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(Gap_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(Gap_Brand_display), by = c("BMC"= "Gap_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
 
 
 # Depricated code ----

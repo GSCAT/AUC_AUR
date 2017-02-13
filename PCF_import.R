@@ -265,8 +265,13 @@ Brand_bind$`Business Unit` <- as.character(Brand_bind$`Business Unit`)
 Brand_bind <- replace_na(Brand_bind, replace = list(`Brand Region` = "", `Business Unit` = "")) %>% 
   unite("BMC", `Brand Region`, `Business Unit`, sep = "")
 Brand_bind$`BMC` <- as.factor(Brand_bind$`BMC`) 
-
+# Specify display output by Brand ----
 Gap_Brand_display <- c("Gap NA", "Gap US", "Gap Canada", "Gap Online US", "Gap Online Can", "Gap Outlet US", "Gap Outlet Canada")
+BR_Brand_display <- c("BR NA", "BR US", "BR Canada", "Banana Online US", "Banana Online Canada", "BRFS US", "BRFS Canada")
+ON_Brand_display <- c("ON NA", "ON US", "ON Canada", "Old Navy Online US", "Old Navy Online Canada")
+BRFS_Brand_display <- c("BRFS NA", "BRFS US", "BRFS Canada")
+GO_Brand_display <- c("GO NA", "Gap Outlet US", "Gap Outlet Canada")
+Athleta_Brand_display <-  c("Athleta NA", "Athleta Specialty", "Athleta Online")
 
 output_Gap_Brand <- Brand_bind %>%
   group_by(`Fiscal Quarter`) %>% 
@@ -275,6 +280,56 @@ output_Gap_Brand <- Brand_bind %>%
   right_join(as.data.frame(Gap_Brand_display), by = c("BMC"= "Gap_Brand_display")) %>% 
   arrange(desc(`Fiscal Quarter`))
 
+output_BR_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(BR_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(BR_Brand_display), by = c("BMC"= "BR_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
+output_ON_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(ON_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(ON_Brand_display), by = c("BMC"= "ON_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
+output_BRFS_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(BRFS_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(BRFS_Brand_display), by = c("BMC"= "BRFS_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
+output_GO_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(GO_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(GO_Brand_display), by = c("BMC"= "GO_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
+output_Athleta_Brand <- Brand_bind %>%
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`BMC` %in% c(Athleta_Brand_display)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(Athleta_Brand_display), by = c("BMC"= "Athleta_Brand_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
+
+
+# Output Function (dev) ----
+output_fun <- function(x, group, out_vec){
+  out_table <- x %>%
+  group_by(x[[group]]) %>% 
+  # subset(x[[`BMC`]] %in% c(out_vec)) %>% 
+  droplevels() %>%
+  right_join(as.data.frame(out_vec), by = c("BMC"= names(out_vec))) %>% 
+  arrange(desc(.[[group]]))
+  return(out_table)
+}
+
+output_Gap_Brand <- output_fun(Brand_bind, `Fiscal Quarter`, Gap_Brand_display)
+
+output_BR_Brand <- output_fun(Brand_bind, group = "Fiscal Quarter", BR_Brand_display)
 
 # Depricated code ----
 # PCF_Forecast[[1]] <- as.factor(PCF_Forecast[[1]])

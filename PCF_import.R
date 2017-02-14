@@ -4,6 +4,17 @@ library(magrittr)
 library(readxl)
 library(readr)
 library(tidyr)
+library(xlsx)
+library(rChoiceDialogs)
+
+# Setup Environment ----
+choose_file_directory <- function()
+{
+  v <- jchoose.dir()
+  return(v)
+}
+
+my_directory <- choose_file_directory()
 
 # Read in Data ----
 PCF_file <-  "AUR AUC 2017 - Feb Fcst.xlsx"
@@ -160,7 +171,7 @@ Output_PCF_Brand_Market <- PCF_post_proc %>%
 
 # Output PCF by Region ----
 Output_PCF_Region <- PCF_post_proc %>% 
-  group_by(`Region`, `Fiscal Quarter`) %>% 
+  group_by(`Fiscal Quarter`, `Region`) %>% 
   summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
             "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
             "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),
@@ -199,10 +210,11 @@ Output_PCF_BMC <- PCF_post_proc %>%
             "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
             "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
 
+Market_display <- c("US", "Canada", "Europe", "China", "Hong Kong", "Japan", "Taiwan", "Mexico")
 
 # Output PCF by Market ----
 Output_PCF_Market <- PCF_post_proc %>% 
-  group_by(`Market`, `Fiscal Quarter`) %>% 
+  group_by(`Fiscal Quarter`, `Market`) %>% 
   summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`,    Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
             "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
             "Budget AUR of Sales"= sum(subset(`Retail$`,    Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),
@@ -218,7 +230,9 @@ Output_PCF_Market <- PCF_post_proc %>%
             "GM LY" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "LY"), na.rm = TRUE)*100,
             "GM Budget (Dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
             "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
-            "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
+            "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE)) %>% 
+  right_join(as.data.frame(Market_display), by = c("Market" = "Market_display")) %>% 
+  arrange(desc(`Fiscal Quarter`))
 
 
 # Output PCF by Brand and Channel ----
@@ -265,6 +279,7 @@ Brand_bind$`Business Unit` <- as.character(Brand_bind$`Business Unit`)
 Brand_bind <- replace_na(Brand_bind, replace = list(`Brand Region` = "", `Business Unit` = "")) %>% 
   unite("BMC", `Brand Region`, `Business Unit`, sep = "")
 Brand_bind$`BMC` <- as.factor(Brand_bind$`BMC`) 
+
 # Specify display output by Brand ----
 Gap_Brand_display <- c("Gap NA", "Gap US", "Gap Canada", "Gap Online US", "Gap Online Can", "Gap Outlet US", "Gap Outlet Canada")
 BR_Brand_display <- c("BR NA", "BR US", "BR Canada", "Banana Online US", "Banana Online Canada", "BRFS US", "BRFS Canada")
@@ -273,6 +288,7 @@ BRFS_Brand_display <- c("BRFS NA", "BRFS US", "BRFS Canada")
 GO_Brand_display <- c("GO NA", "Gap Outlet US", "Gap Outlet Canada")
 Athleta_Brand_display <-  c("Athleta NA", "Athleta Specialty", "Athleta Online")
 
+# Output tables ----
 output_Gap_Brand <- Brand_bind %>%
   group_by(`Fiscal Quarter`) %>% 
   subset(`BMC` %in% c(Gap_Brand_display)) %>% 
@@ -315,7 +331,25 @@ output_Athleta_Brand <- Brand_bind %>%
   right_join(as.data.frame(Athleta_Brand_display), by = c("BMC"= "Athleta_Brand_display")) %>% 
   arrange(desc(`Fiscal Quarter`))
 
+# Output - Gap Inc AUC AUR YOY ----
+Output_GapInc_YOY <- Gap_Inc_bind %>% 
+  select(`Fiscal Quarter`, `AUC % Change (TY vs LY)`, `AUR % Change (TY vs LY)`) %>% 
+  group_by(`Fiscal Quarter`) %>% 
+  subset(`Gap Inc` %in% c(Gap_Inc_display[1]))
 
+# Output - Brands AUC AUR YOY 
+# Output_Brands_YOY <- 
+ 
+write.xlsx(as.data.frame(Output_PCF_Market), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output PCF Market", showNA = FALSE) 
+write.xlsx(as.data.frame(Gap_Inc_bind), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output Gap Inc", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_Gap_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output Gap Brand", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_BR_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output BR Brand", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_ON_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output ON Brand", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_BRFS_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output BRFS Brand", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_GO_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output GO Brand", append = TRUE, showNA = FALSE) 
+write.xlsx(as.data.frame(output_Athleta_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output Athleta Brand", append = TRUE, showNA = FALSE) 
+
+ 
 # Output Function (dev) ----
 output_fun <- function(x, group, out_vec){
   out_table <- x %>%

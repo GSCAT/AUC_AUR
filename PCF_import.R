@@ -17,9 +17,10 @@ choose_file_directory <- function()
 my_directory <- choose_file_directory()
 
 # Read in Data ----
-PCF_file <-  "AUR AUC 2017 - Feb Fcst.xlsx"
+PCF_file <-  "AUR AUC 2017 - Jan Fcst.xlsx"
+PCF_file2 <-  "AUR AUC 2017 - Feb Fcst.xlsx"
 
-PCF_Forecast <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull LY KB" )
+PCF_Forecast <- read_excel(PCF_file2, sheet = "Corp CP Essbase Pull LY KB" )
 PCF_Budget <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull B KB" )
 PCF_LY <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull LY KB" )
   

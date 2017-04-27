@@ -57,12 +57,15 @@ server <- function(input, output) {
     # Output PCF ----
  output$dt <-  renderDataTable({
    
-   input_vec <- as.vector(input$variable)
+   #input_vec <- as.vector(input$variable)
+   # input_vec <- c(as.name(as.vector(input$variable)))
+   input_vec <- lapply(input$variable, as.name)
    print(input_vec)
    
    Output_PCF_test <- PCF_post_proc %>% 
     # group_by(`Fiscal Quarter`, `Channel`) %>% 
-    group_by_(.dots = as.vector(input_vec)) %>% 
+    # group_by_(.dots = as.vector(input_vec)) %>% 
+    group_by_(.dots = input_vec) %>% 
     summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
               "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
               "Budget AUR of Sales"= sum(subset(`Retail$`, Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),

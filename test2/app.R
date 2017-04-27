@@ -51,20 +51,10 @@ server <- function(input, output) {
    #    # draw the histogram with the specified number of bins
    #    hist(x, breaks = bins, col = 'darkgray', border = 'white')
    # }),
-  output$select_variable <- renderUI({ 
-    checkboxGroupInput("variable", "Variable:", names(c(PCF_post_proc[13:21])), 
-                       selected = c("Fiscal Quarter", "Market"))
-
-  })
-    # Output PCF ----
- output$dt <-  renderDataTable({
-   
-   #input_vec <- as.vector(input$variable)
-   # input_vec <- c(as.name(as.vector(input$variable)))
-   input_vec <- lapply(input$variable, as.name)
-   # print(input_vec)
-   
-   df <- PCF_post_proc %>% 
+  
+  df <- reactive({
+    input_vec <- lapply(input$variable, as.name)
+    PCF_post_proc %>% 
     # group_by(`Fiscal Quarter`, `Channel`) %>% 
     # group_by_(.dots = as.vector(input_vec)) %>% 
     group_by_(.dots = input_vec) %>% 
@@ -84,7 +74,42 @@ server <- function(input, output) {
               "GM Budget (Dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
               "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
               "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
-  datatable(format(df, big.mark = ","), extensions = 'Buttons', options = list(
+  })
+  
+  output$select_variable <- renderUI({ 
+    checkboxGroupInput("variable", "Variable:", names(c(PCF_post_proc[13:21])), 
+                       selected = c("Fiscal Quarter", "Market"))
+
+  })
+    # Output PCF ----
+ output$dt <-  renderDataTable({
+   
+   #input_vec <- as.vector(input$variable)
+   # input_vec <- c(as.name(as.vector(input$variable)))
+   input_vec <- lapply(input$variable, as.name)
+   # print(input_vec)
+   dataset <- df()
+   # df <- PCF_post_proc %>% 
+   #  # group_by(`Fiscal Quarter`, `Channel`) %>% 
+   #  # group_by_(.dots = as.vector(input_vec)) %>% 
+   #  group_by_(.dots = input_vec) %>% 
+   #  summarise("Forecast TY AUR of Sales" = sum(subset(`Retail$`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Forecast"), na.rm = TRUE),
+   #            "TY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Forecast"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Forecast"), na.rm = TRUE),
+   #            "Budget AUR of Sales"= sum(subset(`Retail$`, Source == "Budget"),na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "Budget"), na.rm = TRUE),
+   #            "Budget AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "Budget"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "Budget"), na.rm = TRUE),
+   #            "LY AUR of Sales" = sum(subset(`Retail$`, Source == "LY"), na.rm = TRUE)/sum(subset(`Unit Sales`, Source == "LY"), na.rm = TRUE),
+   #            "LY AUC of Receipts" = sum(subset(`Cost Rcpts`, Source == "LY"), na.rm = TRUE)/sum(subset(`Unit Rcpts`, Source == "LY"), na.rm = TRUE),
+   #            "AUR % Change (TY vs Budget)" = as.numeric((`Forecast TY AUR of Sales`-`Budget AUR of Sales`)/`Budget AUR of Sales`)*100,
+   #            "AUC % Change (TY vs Budget)" = as.numeric((`TY AUC of Receipts`-`Budget AUC of Receipts`)/`Budget AUC of Receipts`)*100,
+   #            "AUR % Change (TY vs LY)" = as.numeric((`Forecast TY AUR of Sales`-`LY AUR of Sales`)/`LY AUR of Sales`)*100,
+   #            "AUC % Change (TY vs LY)" = as.numeric((`TY AUC of Receipts`-`LY AUC of Receipts`)/`LY AUC of Receipts`)*100,
+   #            "GM Budget" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "Budget"), na.rm = TRUE)*100,
+   #            "GM Forecast/Actual" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "Forecast"), na.rm = TRUE)*100,
+   #            "GM LY" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE)/ sum(subset(`Retail$`, Source == "LY"), na.rm = TRUE)*100,
+   #            "GM Budget (Dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
+   #            "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
+   #            "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
+  datatable(format(dataset, big.mark = ","), extensions = 'Buttons', options = list(
     pageLength = 10,
     dom = 'Bflrtip',
     buttons = list(
@@ -97,18 +122,20 @@ server <- function(input, output) {
     caption ="AUC AUR Data Table")
   })
  output$AUR_graph <- renderPlot({
+   
    input_var <- as.name(input$variable[1])
    input_var2 <- as.name(input$variable[2])
-   dataset <- df
+   dataset2 <- df()
    
-   print(paste("df$`", as.name(input_var),"`", sep = ""))
-   print(paste("df$`", as.name(input_var2),"`", sep = ""))
+   print(paste("dataset2$`", as.name(input_var),"`", sep = ""))
+   print(paste("dataset2$`", as.name(input_var2),"`", sep = ""))
    
-   ggplot(df, 
-          aes_string(x = paste("df$`", 
+   ggplot(dataset2, 
+          aes_string(x = paste("dataset2$`", 
                                as.name(input_var),"`",  sep = ""), 
-                     df$`Forecast TY AUR of Sales`)) + 
-     geom_point()})
+                     dataset2$`Forecast TY AUR of Sales`)) + 
+     geom_point(aes_string(color =paste("dataset2$`", 
+                             as.name(input_var2),"`",  sep = "")))})
  # print(Variable)
 }
 

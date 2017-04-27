@@ -64,7 +64,7 @@ server <- function(input, output) {
    input_vec <- lapply(input$variable, as.name)
    # print(input_vec)
    
-   Output_PCF_test <- PCF_post_proc %>% 
+   df <- PCF_post_proc %>% 
     # group_by(`Fiscal Quarter`, `Channel`) %>% 
     # group_by_(.dots = as.vector(input_vec)) %>% 
     group_by_(.dots = input_vec) %>% 
@@ -84,7 +84,7 @@ server <- function(input, output) {
               "GM Budget (Dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
               "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
               "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
-  datatable(format(Output_PCF_test, big.mark = ","), extensions = 'Buttons', options = list(
+  datatable(format(df, big.mark = ","), extensions = 'Buttons', options = list(
     pageLength = 10,
     dom = 'Bflrtip',
     buttons = list(
@@ -97,10 +97,18 @@ server <- function(input, output) {
     caption ="AUC AUR Data Table")
   })
  output$AUR_graph <- renderPlot({
-   input_vec2 <-lapply(input$variable, as.name)
+   input_var <- as.name(input$variable[1])
+   input_var2 <- as.name(input$variable[2])
+   dataset <- df
    
-   print(input_vec2)
-   ggplot(Output_PCF_test) + geom_point(aes(as.name(input_vec2[1]), `Forecast TY AUR of Sales`))})
+   print(paste("df$`", as.name(input_var),"`", sep = ""))
+   print(paste("df$`", as.name(input_var2),"`", sep = ""))
+   
+   ggplot(df, 
+          aes_string(x = paste("df$`", 
+                               as.name(input_var),"`",  sep = ""), 
+                     df$`Forecast TY AUR of Sales`)) + 
+     geom_point()})
  # print(Variable)
 }
 

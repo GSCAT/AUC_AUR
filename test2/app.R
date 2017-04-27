@@ -10,6 +10,7 @@
 
 library(shiny)
 library(formattable)
+library(ggplot2)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -26,14 +27,15 @@ ui <- fluidPage(
          #             max = 50,
          #             value = 30),
          uiOutput("select_variable")
-         #,submitButton("Update View")
+         # ,submitButton("Update View")
          # checkboxGroupInput("Variable", "Variable:", names(PCF_post_proc[13:21]), selected = c("Fiscal Quarter", "Market"))
          # checkboxGroupInput("Variable", "Variable:", choices = c(`Fiscal Month #`, `Fiscal Quarter`, `Brand`, `Market`), selected = c("Fiscal Quarter", "Market"))
       ),
       
       # Show a plot of the generated distribution
       mainPanel(
-         dataTableOutput("dt", width = 660)
+         dataTableOutput("dt", width = 660),
+         plotOutput("AUR_graph", width = 500)
       )
    )
 )
@@ -60,7 +62,7 @@ server <- function(input, output) {
    #input_vec <- as.vector(input$variable)
    # input_vec <- c(as.name(as.vector(input$variable)))
    input_vec <- lapply(input$variable, as.name)
-   print(input_vec)
+   # print(input_vec)
    
    Output_PCF_test <- PCF_post_proc %>% 
     # group_by(`Fiscal Quarter`, `Channel`) %>% 
@@ -82,8 +84,23 @@ server <- function(input, output) {
               "GM Budget (Dollars)" = sum((subset(`Retail$`, Source == "Budget") - subset(`Cost$`, Source == "Budget")), na.rm = TRUE),
               "GM Forecast/Actual (Dollars)" = sum((subset(`Retail$`, Source == "Forecast") - subset(`Cost$`, Source == "Forecast")), na.rm = TRUE),
               "GM LY (Dollars)" = sum((subset(`Retail$`, Source == "LY") - subset(`Cost$`, Source == "LY")), na.rm = TRUE))
-  datatable(Output_PCF_test)
+  datatable(format(Output_PCF_test, big.mark = ","), extensions = 'Buttons', options = list(
+    pageLength = 10,
+    dom = 'Bflrtip',
+    buttons = list(
+      list(
+        extend = 'collection',
+        buttons = c('csv', 'excel', 'pdf'),
+        text = 'Download'
+      )
+    )),
+    caption ="AUC AUR Data Table")
   })
+ output$AUR_graph <- renderPlot({
+   input_vec2 <-lapply(input$variable, as.name)
+   
+   print(input_vec2)
+   ggplot(Output_PCF_test) + geom_point(aes(as.name(input_vec2[1]), `Forecast TY AUR of Sales`))})
  # print(Variable)
 }
 

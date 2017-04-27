@@ -1,6 +1,5 @@
-install.packages("dplyr")
+# install.packages("dplyr")
 library(dplyr)
-library(magrittr)
 library(readxl)
 library(readr)
 library(tidyr)
@@ -17,10 +16,10 @@ choose_file_directory <- function()
 my_directory <- choose_file_directory()
 
 # Read in Data ----
-PCF_file <-  "AUR AUC 2017 - Jan Fcst.xlsx"
-PCF_file2 <-  "AUR AUC 2017 - Feb Fcst.xlsx"
+PCF_file <-  paste(my_directory, "AUR AUC 2017 - Mar Fcst.xlsx", sep = .Platform$file.sep)
+PCF_file2 <-  paste(my_directory, "AUR AUC 2017 - Mar Fcst.xlsx", sep= .Platform$file.sep)
 
-PCF_Forecast <- read_excel(PCF_file2, sheet = "Corp CP Essbase Pull LY KB" )
+PCF_Forecast <- read_excel(PCF_file2, sheet = "Corp CP Essbase Pull KB" )
 PCF_Budget <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull B KB" )
 PCF_LY <- read_excel(PCF_file, sheet = "Corp CP Essbase Pull LY KB" )
   
@@ -350,7 +349,6 @@ write.xlsx(as.data.frame(output_BRFS_Brand), file = paste(my_directory, "AUC AUR
 write.xlsx(as.data.frame(output_GO_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output GO Brand", append = TRUE, showNA = FALSE) 
 write.xlsx(as.data.frame(output_Athleta_Brand), file = paste(my_directory, "AUC AUR Workbook.xlsx", sep = .Platform$file.sep), sheetName = "Output Athleta Brand", append = TRUE, showNA = FALSE) 
 
- 
 # Output Function (dev) ----
 output_fun <- function(x, group, out_vec){
   out_table <- x %>%

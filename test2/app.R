@@ -11,6 +11,7 @@
 library(shiny)
 library(formattable)
 library(ggplot2)
+library(plotly)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -26,8 +27,9 @@ ui <- fluidPage(
          #             min = 1,
          #             max = 50,
          #             value = 30),
+        width = 2,
          uiOutput("select_variable")
-         # ,submitButton("Update View")
+          ,submitButton("Update View")
          # checkboxGroupInput("Variable", "Variable:", names(PCF_post_proc[13:21]), selected = c("Fiscal Quarter", "Market"))
          # checkboxGroupInput("Variable", "Variable:", choices = c(`Fiscal Month #`, `Fiscal Quarter`, `Brand`, `Market`), selected = c("Fiscal Quarter", "Market"))
       ),
@@ -35,7 +37,7 @@ ui <- fluidPage(
       # Show a plot of the generated distribution
       mainPanel(
          dataTableOutput("dt", width = 660),
-         plotOutput("AUR_graph", width = 500)
+         plotlyOutput("AUR_graph", width = 500)
       )
    )
 )
@@ -121,7 +123,7 @@ server <- function(input, output) {
     )),
     caption ="AUC AUR Data Table")
   })
- output$AUR_graph <- renderPlot({
+ output$AUR_graph <- renderPlotly({
    
    input_var <- as.name(input$variable[1])
    input_var2 <- as.name(input$variable[2])
@@ -130,12 +132,14 @@ server <- function(input, output) {
    print(paste("dataset2$`", as.name(input_var),"`", sep = ""))
    print(paste("dataset2$`", as.name(input_var2),"`", sep = ""))
    
-   ggplot(dataset2, 
+   p <- ggplot(dataset2, 
           aes_string(x = paste("dataset2$`", 
                                as.name(input_var),"`",  sep = ""), 
                      dataset2$`Forecast TY AUR of Sales`)) + 
      geom_point(aes_string(color =paste("dataset2$`", 
-                             as.name(input_var2),"`",  sep = "")))})
+                             as.name(input_var2),"`",  sep = ""))) 
+     ggplotly(p, tooltip = c("x", "text"))
+   })
  # print(Variable)
 }
 

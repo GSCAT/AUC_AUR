@@ -7,9 +7,13 @@
 #    http://shiny.rstudio.com/
 #
 # git test
-
+library(dplyr)
+library(readxl)
+library(readr)
+library(tidyr)
 library(shiny)
 library(formattable)
+library(DT)
 library(ggplot2)
 library(plotly)
 
@@ -137,8 +141,12 @@ server <- function(input, output) {
                                as.name(input_var),"`",  sep = ""), 
                      dataset2$`Forecast TY AUR of Sales`)) + 
      geom_point(aes_string(color =paste("dataset2$`", 
-                             as.name(input_var2),"`",  sep = ""))) 
-     ggplotly(p, tooltip = c("x", "text"))
+                             as.name(input_var2),"`",  sep = "")))+
+     xlab(as.character(input_var))+
+     ylab("Dollars")+
+     labs(color = input_var2, title = "Forecast TY AUR of Sales" )
+     ggplotly(p, tooltip = c(paste("dataset2$`", 
+                                   as.name(input_var2),"`",  sep = ""), "text"))
    })
  # print(Variable)
 }
